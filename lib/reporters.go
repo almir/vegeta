@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"text/tabwriter"
+   "encoding/csv"
 )
 
 // Reporter represents any function which takes a slice of Results and
@@ -100,3 +101,55 @@ const plotsTemplate = `<!doctype>
   </script>
 </body>
 </html>`
+
+type ResultGroup struct {
+   from int
+   to int
+   rate uint64
+}
+
+func ReportCSV(results []Result) ([]byte, error) {
+   out := &bytes.Buffer{}
+
+   header := []string{ "rate" , "mean_ms" , "p50_ms", "p95_ms", "p99_ms" , "max_ms", "bytesIn_B", "bytesOut_B", "success_percent"  }
+
+   w := csv.NewWriter(out)
+   w.Write(header)
+
+   resultGroups := slicesPerAttackRate(results)
+
+   for _,resultGroup := range resultGroups {
+      m := NewMetrics(results[resultGroup.from:resultGroup.to])
+      w.Write(m.Csv(resultGroup.rate))
+   }
+
+   w.Flush()
+
+   return out.Bytes(), nil
+}
+
+func slicesPerAttackRate(results []Result) ([]ResultGroup) {
+
+   resultGroups := []ResultGroup{}
+
+   if len(results) > 0 {
+      resultGroup := ResultGroup{}
+      resultGroup.from = 0
+      resultGroup.to = 0
+      resultGroup.rate = results[0].Rate
+
+      for i, result := range results {
+         if result.Rate != resultGroup.rate {
+            resultGroup.to = i
+            resultGroups = append(resultGroups, resultGroup)
+            resultGroup = ResultGroup{}
+            resultGroup.from = i
+            resultGroup.rate = result.Rate
+         }
+     }
+     resultGroup.to = len(results)
+     resultGroups = append(resultGroups, resultGroup)
+  }
+
+  return resultGroups
+}
