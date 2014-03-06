@@ -7,8 +7,6 @@ It can be used both as a command line utility and a library.
 ***This fork supports attacking with multiple rates, adds a CSV output option to reporter, while removing the plot option from it.***
 
 ## Install
-### Pre-compiled executables
-Get them [here](http://github.com/almir/vegeta/releases).
 
 ### Source
 You need go installed and `GOBIN` in your `PATH`. Once that is done, run the
@@ -21,8 +19,9 @@ $ go install github.com/almir/vegeta
 ## Usage examples
 ```shell
 $ echo "GET http://localhost/" | vegeta attack -rates=100,200,300 -duration=5s | vegeta report
-$ vegeta attack -targets=targets.txt > results.vr
-$ vegeta report -input=results.vr -reporter=csv > results.csv
+$ vegeta attack -targets=targets.txt -output=results.vr
+$ vegeta report -input=results.vr > results.txt
+$ vegeta report -input=results.vr -output=results.csv -reporter=csv
 $ cat results.vr | vegeta report -reporter=json > metrics.json
 ```
 
