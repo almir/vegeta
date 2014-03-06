@@ -1,27 +1,30 @@
-# Vegeta [![Build Status](https://drone.io/github.com/tsenart/vegeta/status.png)](https://drone.io/github.com/tsenart/vegeta/latest)
+# Vegeta [![Build Status](https://drone.io/github.com/almir/vegeta/status.png)](https://drone.io/github.com/almir/vegeta/latest)
 
 Vegeta is a versatile HTTP load testing tool built out of need to drill
 HTTP services with a constant request rate.
 It can be used both as a command line utility and a library.
 
+*This fork supports attacking with multiple rates and also adds a csv output option to reporter.*
+
 ![Vegeta](http://fc09.deviantart.net/fs49/i/2009/198/c/c/ssj2_vegeta_by_trunks24.jpg)
 
 ## Install
 ### Pre-compiled executables
-Get them [here](http://github.com/tsenart/vegeta/releases).
+Get them [here](http://github.com/almir/vegeta/releases).
 
 ### Source
 You need go installed and `GOBIN` in your `PATH`. Once that is done, run the
 command:
 ```shell
-$ go get github.com/tsenart/vegeta
-$ go install github.com/tsenart/vegeta
+$ go get github.com/almir/vegeta
+$ go install github.com/almir/vegeta
 ```
 
 ## Usage examples
 ```shell
-$ echo "GET http://localhost/" | vegeta attack -rate=100 -duration=5s | vegeta report
+$ echo "GET http://localhost/" | vegeta attack -rates=100,200,300 -duration=5s | vegeta report
 $ vegeta attack -targets=targets.txt > results.vr
+$ vegeta report -input=results.vr -reporter=csv > results.csv
 $ vegeta report -input=results.vr -reporter=json > metrics.json
 $ cat results.vr | vegeta report -reporter=plot > plot.html
 ```
@@ -185,7 +188,7 @@ to change the moving average window size (in data points).
 package main
 
 import (
-  vegeta "github.com/tsenart/vegeta/lib"
+  vegeta "github.com/almir/vegeta/lib"
   "time"
   "fmt"
 )
