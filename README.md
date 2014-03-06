@@ -6,8 +6,6 @@ It can be used both as a command line utility and a library.
 
 *This fork supports attacking with multiple rates and also adds a csv output option to reporter.*
 
-![Vegeta](http://fc09.deviantart.net/fs49/i/2009/198/c/c/ssj2_vegeta_by_trunks24.jpg)
-
 ## Install
 ### Pre-compiled executables
 Get them [here](http://github.com/almir/vegeta/releases).
@@ -54,7 +52,7 @@ Usage of attack:
   -header=: Targets request header
   -ordering="random": Attack ordering [sequential, random]
   -output="stdout": Output file
-  -rate=50: Requests per second
+  -rates=50: One or more comma separated requests per second
   -redirects=10: Number of redirects to follow
   -targets="stdin": Targets file
   -timeout=0: Requests timeout
@@ -109,7 +107,7 @@ $ vegeta report -h
 Usage of report:
   -input="stdin": Input files (comma separated)
   -output="stdout": Output file
-  -reporter="text": Reporter [text, json, plot]
+  -reporter="text": Reporter [text, json, plot, csv]
 ```
 
 #### -input
@@ -225,7 +223,7 @@ Just pass a new number as the argument to change it.
 ```
 The MIT License (MIT)
 
-Copyright (c) 2013, 2014 Tomás Senart
+Copyright (c) 2014 Almir Dzinovic
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
