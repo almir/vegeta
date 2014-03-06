@@ -111,7 +111,7 @@ type ResultGroup struct {
 func ReportCSV(results []Result) ([]byte, error) {
    out := &bytes.Buffer{}
 
-   header := []string{ "rate" , "mean_ms" , "p50_ms", "p95_ms", "p99_ms" , "max_ms", "bytesIn_B", "bytesOut_B", "success_percent"  }
+   header := []string{ "rate", "mean_ms", "p50_ms", "p95_ms", "p99_ms", "max_ms", "bytesIn_B", "bytesOut_B", "success_percent" }
 
    w := csv.NewWriter(out)
    w.Write(header)

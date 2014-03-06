@@ -13,7 +13,7 @@ import (
 
 func attackCmd(args []string) command {
 	fs := flag.NewFlagSet("attack", flag.ExitOnError)
-	rate := fs.Uint64("rate", 50, "Requests per second")
+	rate := fs.Uint64("rate", 50, "One or more comma separated requests per second")
 	targetsf := fs.String("targets", "stdin", "Targets file")
 	ordering := fs.String("ordering", "random", "Attack ordering [sequential, random]")
 	duration := fs.Duration("duration", 10*time.Second, "Duration of the test")
