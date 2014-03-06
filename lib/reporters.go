@@ -47,61 +47,6 @@ func ReportJSON(results []Result) ([]byte, error) {
 	return json.Marshal(NewMetrics(results))
 }
 
-// ReportPlot builds up a self contained HTML page with an interactive plot
-// of the latencies of the requests. Built with http://dygraphs.com/
-func ReportPlot(results []Result) ([]byte, error) {
-	series := &bytes.Buffer{}
-	for i, point := 0, ""; i < len(results); i++ {
-		point = "[" + strconv.FormatFloat(
-			results[i].Timestamp.Sub(results[0].Timestamp).Seconds(), 'f', -1, 32) + ","
-
-		if results[i].Error == "" {
-			point += "NaN," + strconv.FormatFloat(results[i].Latency.Seconds()*1000, 'f', -1, 32) + "],"
-		} else {
-			point += strconv.FormatFloat(results[i].Latency.Seconds()*1000, 'f', -1, 32) + ",NaN],"
-		}
-
-		series.WriteString(point)
-	}
-	// Remove trailing commas
-	if series.Len() > 0 {
-		series.Truncate(series.Len() - 1)
-	}
-
-	return []byte(fmt.Sprintf(plotsTemplate, dygraphJSLibSrc(), series)), nil
-}
-
-const plotsTemplate = `<!doctype>
-<html>
-<head>
-  <title>Vegeta Plots</title>
-</head>
-<body>
-  <div id="latencies" style="font-family: Courier; width: 100%%; height: 600px"></div>
-  <a href="#" download="vegetaplot.png" onclick="this.href = document.getElementsByTagName('canvas')[0].toDataURL('image/png').replace(/^data:image\/[^;]/, 'data:application/octet-stream')">Download as PNG</a>
-  <script>
-	%s
-  </script>
-  <script>
-  new Dygraph(
-    document.getElementById("latencies"),
-    [%s],
-    {
-      title: 'Vegeta Plot',
-      labels: ['Seconds', 'OK', 'ERR'],
-      ylabel: 'Latency (ms)',
-      xlabel: 'Seconds elapsed',
-      showRoller: true,
-      colors: ['#FA7878', '#8AE234'],
-      legend: 'always',
-      logscale: true,
-      strokeWidth: 1.3
-    }
-  );
-  </script>
-</body>
-</html>`
-
 type ResultGroup struct {
    from int
    to int

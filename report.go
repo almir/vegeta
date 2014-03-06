@@ -9,7 +9,7 @@ import (
 
 func reportCmd(args []string) command {
 	fs := flag.NewFlagSet("report", flag.ExitOnError)
-	reporter := fs.String("reporter", "text", "Reporter [text, json, plot, csv]")
+	reporter := fs.String("reporter", "text", "Reporter [text, json, csv]")
 	input := fs.String("input", "stdin", "Input files (comma separated)")
 	output := fs.String("output", "stdout", "Output file")
 	fs.Parse(args)
@@ -28,8 +28,6 @@ func report(reporter, input, output string) error {
 		rep = vegeta.ReportText
 	case "json":
 		rep = vegeta.ReportJSON
-	case "plot":
-		rep = vegeta.ReportPlot
 	case "csv":
 		rep = vegeta.ReportCSV
 	default:

@@ -23,8 +23,7 @@ $ go install github.com/almir/vegeta
 $ echo "GET http://localhost/" | vegeta attack -rates=100,200,300 -duration=5s | vegeta report
 $ vegeta attack -targets=targets.txt > results.vr
 $ vegeta report -input=results.vr -reporter=csv > results.csv
-$ vegeta report -input=results.vr -reporter=json > metrics.json
-$ cat results.vr | vegeta report -reporter=plot > plot.html
+$ cat results.vr | vegeta report -reporter=json > metrics.json
 ```
 
 ## Usage manual
@@ -52,7 +51,7 @@ Usage of attack:
   -header=: Targets request header
   -ordering="random": Attack ordering [sequential, random]
   -output="stdout": Output file
-  -rates=50: One or more comma separated requests per second
+  -rates=[]: One or more comma separated requests per second
   -redirects=10: Number of redirects to follow
   -targets="stdin": Targets file
   -timeout=0: Requests timeout
@@ -107,7 +106,7 @@ $ vegeta report -h
 Usage of report:
   -input="stdin": Input files (comma separated)
   -output="stdout": Output file
-  -reporter="text": Reporter [text, json, plot, csv]
+  -reporter="text": Reporter [text, json, csv]
 ```
 
 #### -input
@@ -170,16 +169,6 @@ Get http://localhost:6060: http: can't write HTTP request on broken connection
   ]
 }
 ```
-##### plot
-Generates an HTML5 page with an interactive plot based on
-[Dygraphs](http://dygraphs.com).
-Click and drag to select a region to zoom into. Double click to zoom
-out.
-Input a different number on the bottom left corner input field
-to change the moving average window size (in data points).
-
-![Plot](https://dl.dropboxusercontent.com/u/83217940/plot.png)
-
 
 ## Usage (Library)
 ```go

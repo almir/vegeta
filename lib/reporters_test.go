@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func BenchmarkReportPlot(b *testing.B) {
+func BenchmarkReportCSV(b *testing.B) {
 	b.StopTimer()
 	// Build result set
 	results := make([]Result, 50000)
@@ -20,6 +20,6 @@ func BenchmarkReportPlot(b *testing.B) {
 	// Start benchmark
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		ReportPlot(results)
+		ReportCSV(results)
 	}
 }
