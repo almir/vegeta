@@ -9,11 +9,49 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"strconv"
 )
+
+type rateList []uint64
+
+// String is the method to format the flag's value, part of the flag.Value interface.
+// The String method's output will be used in diagnostics.
+func (i *rateList) String() string {
+	return fmt.Sprint(*i)
+}
+
+// Set is the method to set the flag value, part of the flag.Value interface.
+// Set's argument is a string to be parsed to set the flag.
+// It's a comma-separated list, so we split it.
+func (i *rateList) Set(value string) error {
+	for _, singleRate := range strings.Split(value, ",") {
+		oneRate, err := strconv.ParseUint(singleRate, 10, 64)
+		if err != nil {
+			return err
+		}
+		*i = append(*i, oneRate)
+	}
+	return nil
+}
+
+func writeResults(results vegeta.Results , output string)  error {
+	out, err := file(output, true)
+	if err != nil {
+		return fmt.Errorf(errOutputFilePrefix+"(%s): %s", output, err)
+	}
+	defer out.Close()
+
+	log.Printf("Writing results to '%s'...", output)
+	if err := results.Encode(out); err != nil {
+		return err
+	}
+	return nil
+}
 
 func attackCmd(args []string) command {
 	fs := flag.NewFlagSet("attack", flag.ExitOnError)
-	rate := fs.Uint64("rate", 50, "One or more comma separated requests per second")
+	var rateFlag rateList = []uint64{}
+	fs.Var(&rateFlag, "rates", "One or more comma separated requests per second")
 	targetsf := fs.String("targets", "stdin", "Targets file")
 	ordering := fs.String("ordering", "random", "Attack ordering [sequential, random]")
 	duration := fs.Duration("duration", 10*time.Second, "Duration of the test")
@@ -25,32 +63,43 @@ func attackCmd(args []string) command {
 	fs.Parse(args)
 
 	return func() error {
-		return attack(*rate, *duration, *targetsf, *ordering, *output, *redirects,
-			*timeout, hdrs.Header)
+		results := make(vegeta.Results, 0)
+		var err error = nil
+
+		for _, rate := range rateFlag {
+			if results, err = attack(rate, *duration, *targetsf, *ordering, *output, *redirects,
+			*timeout, hdrs.Header, results); err != nil {
+				return err
+			}
+		}
+		if err = writeResults(results, *output); err != nil {
+			return err
+		}
+		return nil
 	}
 }
 
 // attack validates the attack arguments, sets up the
 // required resources, launches the attack and writes the results
 func attack(rate uint64, duration time.Duration, targetsf, ordering,
-	output string, redirects int, timeout time.Duration, hdr http.Header) error {
+	output string, redirects int, timeout time.Duration, hdr http.Header, previousResults vegeta.Results) (vegeta.Results, error) {
 
 	if rate == 0 {
-		return fmt.Errorf(errRatePrefix + "can't be zero")
+		return nil, fmt.Errorf(errRatePrefix + "can't be zero")
 	}
 
 	if duration == 0 {
-		return fmt.Errorf(errDurationPrefix + "can't be zero")
+		return nil, fmt.Errorf(errDurationPrefix + "can't be zero")
 	}
 
 	in, err := file(targetsf, false)
 	if err != nil {
-		return fmt.Errorf(errTargetsFilePrefix+"(%s): %s", targetsf, err)
+		return nil, fmt.Errorf(errTargetsFilePrefix+"(%s): %s", targetsf, err)
 	}
 	defer in.Close()
 	targets, err := vegeta.NewTargetsFrom(in)
 	if err != nil {
-		return fmt.Errorf(errTargetsFilePrefix+"(%s): %s", targetsf, err)
+		return nil, fmt.Errorf(errTargetsFilePrefix+"(%s): %s", targetsf, err)
 	}
 	targets.SetHeader(hdr)
 
@@ -60,12 +109,12 @@ func attack(rate uint64, duration time.Duration, targetsf, ordering,
 	case "sequential":
 		break
 	default:
-		return fmt.Errorf(errOrderingPrefix+"`%s` is invalid", ordering)
+		return nil, fmt.Errorf(errOrderingPrefix+"`%s` is invalid", ordering)
 	}
 
 	out, err := file(output, true)
 	if err != nil {
-		return fmt.Errorf(errOutputFilePrefix+"(%s): %s", output, err)
+		return nil, fmt.Errorf(errOutputFilePrefix+"(%s): %s", output, err)
 	}
 	defer out.Close()
 
@@ -79,15 +128,12 @@ func attack(rate uint64, duration time.Duration, targetsf, ordering,
 		len(targets), ordering, duration, rate)
 	results := vegeta.Attack(targets, rate, duration)
 	log.Println("Done!")
-	log.Printf("Writing results to '%s'...", output)
-	if err := results.Encode(out); err != nil {
-		return err
-	}
-	return nil
+
+	return append(previousResults, results...), nil
 }
 
 const (
-	errRatePrefix        = "Rate: "
+	errRatePrefix        = "Rate(s): "
 	errDurationPrefix    = "Duration: "
 	errOutputFilePrefix  = "Output file: "
 	errTargetsFilePrefix = "Targets file: "
