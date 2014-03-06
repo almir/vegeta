@@ -75,14 +75,14 @@ func (a Attacker) drill(rt uint64, reqs chan *http.Request, resc chan Result) {
 	throttle := time.Tick(time.Duration(1e9 / rt))
 	for req := range reqs {
 		<-throttle
-		go a.hit(req, resc)
+		go a.hit(req, resc, rt)
 	}
 }
 
 // hit executes the passed http.Request and puts the result into results.
 // Both transport errors and unsucessfull requests (non {2xx,3xx}) are
 // considered errors.
-func (a Attacker) hit(req *http.Request, res chan Result) {
+func (a Attacker) hit(req *http.Request, res chan Result, rate uint64) {
 	began := time.Now()
 	r, err := a.client.Do(req)
 	result := Result{
