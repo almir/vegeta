@@ -89,7 +89,7 @@ func (a Attacker) hit(req *http.Request, res chan Result, rate uint64) {
 		Timestamp: began,
 		Latency:   time.Since(began),
 		BytesOut:  uint64(req.ContentLength),
-		Rate: rate,
+		Rate:      rate,
 	}
 	if err != nil {
 		result.Error = err.Error()
