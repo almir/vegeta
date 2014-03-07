@@ -67,11 +67,13 @@ func attack(rate uint64, duration time.Duration, targetsf, ordering,
 		return nil, fmt.Errorf(errOrderingPrefix+"`%s` is invalid", ordering)
 	}
 
-	out, err := file(output, true)
-	if err != nil {
-		return nil, fmt.Errorf(errOutputFilePrefix+"(%s): %s", output, err)
+	if output != "stdout" {
+		out, err := file(output, true)
+		if err != nil {
+			return nil, fmt.Errorf(errOutputFilePrefix+"(%s): %s", output, err)
+		}
+		defer out.Close()
 	}
-	defer out.Close()
 
 	vegeta.DefaultAttacker.SetRedirects(redirects)
 
@@ -88,10 +90,7 @@ func attack(rate uint64, duration time.Duration, targetsf, ordering,
 }
 
 func writeResults(results vegeta.Results, output string) error {
-	out, err := file(output, true)
-	if err != nil {
-		return fmt.Errorf(errOutputFilePrefix+"(%s): %s", output, err)
-	}
+	out, _ := file(output, true)
 	defer out.Close()
 
 	log.Printf("Writing results to '%s'...", output)
@@ -114,12 +113,6 @@ func attackCmd(args []string) command {
 	hdrs := headers{Header: make(http.Header)}
 	fs.Var(hdrs, "header", "Targets request header")
 	fs.Parse(args)
-
-	in, err := file(*targetsf, false)
-	if err != nil {
-		return nil
-	}
-	defer in.Close()
 
 	return func() error {
 		results := make(vegeta.Results, 0)
