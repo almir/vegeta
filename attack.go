@@ -160,6 +160,10 @@ func attackCmd(args []string) (command, error) {
 	fs.Var(hdrs, "header", "Targets request header")
 	fs.Parse(args)
 
+	if len(rateFlag) == 0 {
+		return nil, fmt.Errorf(errRatePrefix + "can't be empty")
+	}
+
 	if *targetsf == "stdin" {
 		in, err := file(*targetsf, false)
 		if err != nil {
