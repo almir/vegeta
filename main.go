@@ -31,7 +31,7 @@ func init() {
 }
 
 func main() {
-	commands := map[string]func([]string) command{
+	commands := map[string]func([]string) (command, error) {
 		"attack": attackCmd,
 		"report": reportCmd,
 	}
@@ -44,7 +44,11 @@ func main() {
 
 	if cmd, ok := commands[args[0]]; !ok {
 		log.Fatalf("Unknown command: %s", args[0])
-	} else if err := cmd(args[1:])(); err != nil {
-		log.Fatal(err)
+	} else {
+		if cmd, err := cmd(args[1:]); err != nil {
+			log.Fatal(err)
+		} else {
+			cmd()
+		}
 	}
 }

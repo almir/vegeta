@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func reportCmd(args []string) command {
+func reportCmd(args []string) (command, error) {
 	fs := flag.NewFlagSet("report", flag.ExitOnError)
 	reporter := fs.String("reporter", "text", "Reporter [text, json, csv]")
 	input := fs.String("input", "stdin", "Input files (comma separated)")
@@ -16,7 +16,7 @@ func reportCmd(args []string) command {
 
 	return func() error {
 		return report(*reporter, *input, *output)
-	}
+	}, nil
 }
 
 // report validates the report arguments, sets up the required resources

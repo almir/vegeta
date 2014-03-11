@@ -146,7 +146,7 @@ func writeResults(results vegeta.Results, output string) error {
 	return nil
 }
 
-func attackCmd(args []string) command {
+func attackCmd(args []string) (command, error) {
 	fs := flag.NewFlagSet("attack", flag.ExitOnError)
 	var rateFlag rateList = []uint64{}
 	fs.Var(&rateFlag, "rates", "One or more comma separated requests per second")
@@ -163,12 +163,12 @@ func attackCmd(args []string) command {
 	if *targetsf == "stdin" {
 		in, err := file(*targetsf, false)
 		if err != nil {
-			return nil
+			return nil, fmt.Errorf(errTargetsFilePrefix+"(%s): %s", *targetsf, err)
 		}
 		defer in.Close()
 		targets, err := vegeta.NewTargetsFrom(in)
 		if err != nil {
-			return nil
+			return nil, fmt.Errorf(errTargetsFilePrefix+"(%s): %s", *targetsf, err)
 		}
 
 		return func() error {
@@ -185,7 +185,7 @@ func attackCmd(args []string) command {
 				return err
 			}
 			return nil
-		}
+		}, nil
 	} else {
 		return func() error {
 			results := make(vegeta.Results, 0)
@@ -201,7 +201,7 @@ func attackCmd(args []string) command {
 				return err
 			}
 			return nil
-		}
+		}, nil
 	}
 }
 
