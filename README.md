@@ -21,7 +21,7 @@ $ go install github.com/almir/vegeta
 ## Usage examples
 ```shell
 $ echo "GET http://localhost/" | vegeta attack -rates=100,200,300 -duration=5s | vegeta report
-$ vegeta attack -targets=targets.txt -output=results.vr
+$ vegeta attack -rates=100,200,300 -targets=targets.txt -output=results.vr
 $ vegeta report -input=results.vr > results.txt
 $ vegeta report -input=results.vr -output=results.csv -reporter=csv
 $ cat results.vr | vegeta report -reporter=json > metrics.json
