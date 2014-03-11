@@ -6,7 +6,7 @@ It can be used both as a command line utility and a library.
 
 ***This fork supports attacking with multiple rates, adds a CSV output option to reporter, while removing the plot option from it.***
 
-*This is basically just a code merge between the [original tool](https://github.com/tsenart/vegeta) and [senaduka's fork](https://github.com/senaduka/vegeta).*
+*This is basically just a code merge between the [original tool](https://github.com/tsenart/vegeta) and [senaduka's fork](https://github.com/senaduka/vegeta) containing some improvements and bug fixes.*
 
 ## Install
 
