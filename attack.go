@@ -80,61 +80,6 @@ func attack(rate uint64, duration time.Duration, targets *vegeta.Targets, orderi
 	return append(previousResults, results...), nil
 }
 
-// attackFile validates the attack arguments, sets up the
-// required resources, launches the attack and writes the results
-func attackFile(rate uint64, duration time.Duration, targetsf, ordering,
-	output string, redirects int, timeout time.Duration, hdr http.Header, previousResults vegeta.Results) (vegeta.Results, error) {
-
-	if rate == 0 {
-		return nil, fmt.Errorf(errRatePrefix + "can't be zero")
-	}
-
-	if duration == 0 {
-		return nil, fmt.Errorf(errDurationPrefix + "can't be zero")
-	}
-
-	in, err := file(targetsf, false)
-	if err != nil {
-		return nil, fmt.Errorf(errTargetsFilePrefix+"(%s): %s", targetsf, err)
-	}
-	defer in.Close()
-	targets, err := vegeta.NewTargetsFrom(in)
-	if err != nil {
-		return nil, fmt.Errorf(errTargetsFilePrefix+"(%s): %s", targetsf, err)
-	}
-	targets.SetHeader(hdr)
-
-	switch ordering {
-	case "random":
-		targets.Shuffle(time.Now().UnixNano())
-	case "sequential":
-		break
-	default:
-		return nil, fmt.Errorf(errOrderingPrefix+"`%s` is invalid", ordering)
-	}
-
-	if output != "stdout" {
-		out, err := file(output, true)
-		if err != nil {
-			return nil, fmt.Errorf(errOutputFilePrefix+"(%s): %s", output, err)
-		}
-		defer out.Close()
-	}
-
-	vegeta.DefaultAttacker.SetRedirects(redirects)
-
-	if timeout > 0 {
-		vegeta.DefaultAttacker.SetTimeout(timeout)
-	}
-
-	log.Printf("Vegeta is attacking %d targets in %s order for %s with %d requests/sec...\n",
-		len(targets), ordering, duration, rate)
-	results := vegeta.Attack(targets, rate, duration)
-	log.Println("Done!")
-
-	return append(previousResults, results...), nil
-}
-
 func writeResults(results vegeta.Results, output string) error {
 	out, _ := file(output, true)
 	defer out.Close()
@@ -164,49 +109,31 @@ func attackCmd(args []string) (command, error) {
 		return nil, fmt.Errorf(errRatePrefix + "has to be specified and can't be empty")
 	}
 
-	if *targetsf == "stdin" {
-		in, err := file(*targetsf, false)
-		if err != nil {
-			return nil, fmt.Errorf(errTargetsFilePrefix+"(%s): %s", *targetsf, err)
-		}
-		defer in.Close()
-		targets, err := vegeta.NewTargetsFrom(in)
-		if err != nil {
-			return nil, fmt.Errorf(errTargetsFilePrefix+"(%s): %s", *targetsf, err)
-		}
-
-		return func() error {
-			results := make(vegeta.Results, 0)
-			var err error = nil
-
-			for _, rate := range rateFlag {
-				if results, err = attack(rate, *duration, &targets, *ordering, *output, *redirects,
-					*timeout, hdrs.Header, results); err != nil {
-					return err
-				}
-			}
-			if err = writeResults(results, *output); err != nil {
-				return err
-			}
-			return nil
-		}, nil
-	} else {
-		return func() error {
-			results := make(vegeta.Results, 0)
-			var err error = nil
-
-			for _, rate := range rateFlag {
-				if results, err = attackFile(rate, *duration, *targetsf, *ordering, *output, *redirects,
-					*timeout, hdrs.Header, results); err != nil {
-					return err
-				}
-			}
-			if err = writeResults(results, *output); err != nil {
-				return err
-			}
-			return nil
-		}, nil
+	in, err := file(*targetsf, false)
+	if err != nil {
+		return nil, fmt.Errorf(errTargetsFilePrefix+"(%s): %s", *targetsf, err)
 	}
+	defer in.Close()
+	targets, err := vegeta.NewTargetsFrom(in)
+	if err != nil {
+		return nil, fmt.Errorf(errTargetsFilePrefix+"(%s): %s", *targetsf, err)
+	}
+
+	return func() error {
+		results := make(vegeta.Results, 0)
+		var err error = nil
+
+		for _, rate := range rateFlag {
+			if results, err = attack(rate, *duration, &targets, *ordering, *output, *redirects,
+				*timeout, hdrs.Header, results); err != nil {
+				return err
+			}
+		}
+		if err = writeResults(results, *output); err != nil {
+			return err
+		}
+		return nil
+	}, nil
 }
 
 const (
