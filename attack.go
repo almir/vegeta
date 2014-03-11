@@ -161,7 +161,7 @@ func attackCmd(args []string) (command, error) {
 	fs.Parse(args)
 
 	if len(rateFlag) == 0 {
-		return nil, fmt.Errorf(errRatePrefix + "can't be empty")
+		return nil, fmt.Errorf(errRatePrefix + "has to be specified and can't be empty")
 	}
 
 	if *targetsf == "stdin" {
